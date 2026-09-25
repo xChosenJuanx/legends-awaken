@@ -1,0 +1,29 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Idle RPG: Legends Awaken</title><link rel="manifest" href="manifest.json"><link rel="stylesheet" href="style.css"></head>
+<body>
+<header><div><b>⚔ IDLE RPG</b><small>LEGENDS AWAKEN • BUILD 1</small></div><div class="res">🪙 <span id="gold">0</span>　💎 <span id="gems">25</span></div></header>
+<main>
+<section class="top">
+<aside class="panel hero">
+<h2>WARRIOR <span id="lvl">Lv. 1</span></h2><div class="portrait">🛡️<br>⚔️</div>
+<div class="bar"><i id="xpbar"></i></div><small>EXP <span id="xp">0</span>/<span id="xpneed">100</span></small>
+<div class="stats"><span>❤️ HP <b id="hpstat">120</b></span><span>⚔ ATK <b id="atk">18</b></span><span>🛡 DEF <b id="def">5</b></span><span>💥 CRIT <b id="crit">8%</b></span></div>
+</aside>
+<section class="panel battle">
+<div class="stage"><b id="stage">1-1 GREEN FOREST</b><span id="progress">0 / 10</span></div>
+<div class="scene">
+<div class="unit player" id="player">🧑‍🚀<div class="hp"><i id="php"></i></div></div>
+<div id="fx"></div>
+<div class="unit monster" id="monster">🟢<div class="hp"><i id="mhp"></i></div><b id="monsterName">SLIME</b></div>
+</div>
+<div class="skills"><button id="skill">🔥 POWER SLASH <small id="cd">READY</small></button><button id="boss" disabled>☠ CHALLENGE BOSS</button></div>
+</section>
+<aside class="panel info"><h3>STAGE INFO</h3><p>Monster <b id="mlevel">Lv. 1</b></p><p>Reward <b id="reward">5–10 Gold</b></p><hr><h3>QUEST</h3><p>Defeat monsters</p><div class="bar quest"><i id="questbar"></i></div><small><span id="kills">0</span> / 50</small><button id="claim" disabled>CLAIM 500 🪙</button></aside>
+</section>
+<section class="bottom">
+<div class="panel tabs"><button class="active" data-tab="inventory">🎒 INVENTORY</button><button data-tab="upgrade">🔨 UPGRADE</button><button data-tab="map">🗺 MAP</button><button data-tab="help">📜 INFO</button></div>
+<div class="panel content" id="content"></div>
+</section>
+</main>
+<footer>AUTO BATTLE: <b>ON</b> • Progress saves automatically in this browser • Offline Gold enabled</footer>
+<script src="game.js"></script><script>if('serviceWorker'in navigator)navigator.serviceWorker.register('service-worker.js')</script></body></html>
