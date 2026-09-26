@@ -1,39 +1,21 @@
 <!doctype html>
-<html lang="en">
-<head>
+<html><head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
-<title>Legends Awaken MMORPG</title>
+<title>Legends Awaken — Knight 3D</title>
 <link rel="manifest" href="manifest.json"><link rel="stylesheet" href="style.css">
-</head>
+<script type="importmap">
+{"imports":{
+ "three":"https://esm.sh/three@0.180.0",
+ "@fakl-code/pt-loader":"https://esm.sh/@fakl-code/pt-loader@0.1.5?external=three"
+}}
+</script></head>
 <body>
-<div id="start" class="overlay">
-  <div class="card">
-    <h1>LEGENDS AWAKEN</h1><p class="gold">MMORPG • PWA Prototype</p>
-    <h3>Choose your class</h3>
-    <div id="classes" class="classes"></div>
-    <input id="name" maxlength="14" value="Juan" placeholder="Character name">
-    <button id="enter">ENTER WORLD</button>
-    <small>Character mapping is based on your Priston Tale character folders. Original .SMB/.SMD/.INX models need a web conversion step before they can render in-browser.</small>
-  </div>
-</div>
-
-<div id="hud">
- <div class="portrait"><span id="classIcon">🛡️</span><div><b id="charName">Juan</b><small id="className">Knight • Lv. 1</small></div></div>
- <div class="bars"><div class="bar hp"><i id="hpbar"></i><span id="hptext"></span></div><div class="bar mp"><i id="mpbar"></i><span id="mptext"></span></div><div class="bar xp"><i id="xpbar"></i></div></div>
- <div class="money">🪙 <span id="gold">0</span> &nbsp; 💎 <span id="gems">10</span></div>
-</div>
-<canvas id="game"></canvas>
-<div id="quest"><b>Quest</b><br><span id="questText">Defeat Forest Monsters 0/10</span></div>
-<div id="target"></div>
-<div id="log"></div>
+<div id="loading"><div><h1>LEGENDS AWAKEN</h1><p id="loadText">Loading actual Knight files…</p><small>dkn.smd + dkn.smb + dkn.inx</small></div></div>
+<div id="hud"><b>🛡️ Knight</b><span>Lv. 1</span><div class="hp"><i></i></div><small id="anim">Animation: loading…</small></div>
+<div id="help">WASD / Arrows — Move<br>Space — Attack<br>Shift — Run<br>1 — Cycle animation<br>Drag — Rotate camera</div>
+<div id="status"></div>
 <div id="joy"><div id="stick"></div></div>
-<div id="skills">
- <button data-skill="1"><b>1</b><span>⚔️</span><small>Slash</small></button>
- <button data-skill="2"><b>2</b><span>💥</span><small>Power</small></button>
- <button data-skill="3"><b>3</b><span>✨</span><small>Class</small></button>
- <button id="potion"><b>Q</b><span>🧪</span><small>Potion</small></button>
-</div>
-<div id="menu"><button id="inventory">🎒 Inventory</button><button id="fullscreen">⛶ Fullscreen</button></div>
-<div id="inv" class="panel hidden"><button id="closeInv">✕</button><h2>Inventory</h2><div id="items"></div></div>
-<script src="game.js"></script>
+<div id="skills"><button id="attack">⚔️<small>Attack</small></button><button id="cycle">🎞️<small>Anim</small></button><button id="fs">⛶<small>Full</small></button></div>
+<canvas id="game"></canvas>
+<script type="module" src="game.js"></script>
 </body></html>

@@ -1,9 +1,8 @@
 {
-  "name": "Legends Awaken MMORPG",
+  "name": "Legends Awaken Knight 3D",
   "short_name": "Legends Awaken",
   "start_url": "./",
   "display": "fullscreen",
-  "background_color": "#101813",
-  "theme_color": "#101813",
-  "icons": []
+  "background_color": "#0b110d",
+  "theme_color": "#0b110d"
 }

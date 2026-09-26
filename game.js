@@ -1,31 +1,70 @@
-const C=document.getElementById('game'),ctx=C.getContext('2d');
-const $=id=>document.getElementById(id);
-const classes=[
-['Knight','d_kn','🛡️',30,9,150],['Mechanician','d_meca','⚙️',28,11,145],['Fighter','d_fi','🪓',34,7,155],['Pikeman','d_pa','🔱',36,6,140],
-['Archer','d_ar','🏹',31,7,125],['Atalanta','d_atal','🗡️',33,8,130],['Magician','d_magi','🔮',39,4,105],['Priestess','d_pr','✨',27,6,115]];
-let chosen=0, keys={}, last=0, attackCD=0, skillCD=[0,0,0], quest=0;
-let p={x:0,y:0,r:18,lv:1,xp:0,gold:0,gems:10,hp:150,maxhp:150,mp:80,maxmp:80,atk:30,def:9,name:'Juan',cls:'Knight',icon:'🛡️',items:[]};
-let mobs=[], particles=[], camera={x:0,y:0}; const world={w:2200,h:1600};
-classes.forEach((c,i)=>{let b=document.createElement('button');b.className='class'+(i===0?' sel':'');b.innerHTML=`<span>${c[2]}</span>${c[0]}<small>${c[1]}</small>`;b.onclick=()=>{chosen=i;document.querySelectorAll('.class').forEach(x=>x.classList.remove('sel'));b.classList.add('sel')};$('classes').appendChild(b)});
-$('enter').onclick=()=>{let c=classes[chosen];p.cls=c[0];p.icon=c[2];p.atk=c[3];p.def=c[4];p.maxhp=p.hp=c[5];p.name=$('name').value||'Hero';p.x=world.w/2;p.y=world.h/2;$('start').style.display='none';spawn(16);updateUI();};
-function resize(){C.width=innerWidth*devicePixelRatio;C.height=innerHeight*devicePixelRatio;ctx.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0)} addEventListener('resize',resize);resize();
-function spawn(n=1){for(let i=0;i<n;i++){let types=[['Slime','🟢',40,5],['Goblin','👺',60,8],['Wolf','🐺',75,10],['Skeleton','💀',90,12]],t=types[Math.floor(Math.random()*types.length)];mobs.push({x:150+Math.random()*(world.w-300),y:150+Math.random()*(world.h-300),r:17,name:t[0],icon:t[1],hp:t[2]+p.lv*8,max:t[2]+p.lv*8,atk:t[3]+p.lv,target:false})}}
-function dist(a,b){return Math.hypot(a.x-b.x,a.y-b.y)}
-function hit(m,dmg){m.hp-=dmg;particles.push({x:m.x,y:m.y,t:0,text:'-'+dmg});if(m.hp<=0){p.gold+=8+Math.floor(Math.random()*10);p.xp+=18;quest++;if(Math.random()<.25)p.items.push(['Rustic '+['Sword','Armor','Ring','Boots'][Math.floor(Math.random()*4)],1+Math.floor(Math.random()*5)]);log('Defeated '+m.name+' • EXP +18');m.dead=true;level();}}
-function level(){let need=p.lv*100;if(p.xp>=need){p.xp-=need;p.lv++;p.maxhp+=15;p.hp=p.maxhp;p.atk+=3;p.def+=1;log('LEVEL UP! You are now Lv. '+p.lv)}}
-function nearest(){let best=null,d=150;for(let m of mobs)if(!m.dead&&dist(p,m)<d){d=dist(p,m);best=m}return best}
-function attack(mult=1){if(attackCD>0)return;let m=nearest();if(!m){log('No target in range');return}attackCD=.55;hit(m,Math.floor((p.atk+Math.random()*8)*mult));}
-function useSkill(i){if(skillCD[i]>0)return;let m=nearest();if(!m)return log('Move closer to a monster');let multi=[1.25,2.1,1.65][i];hit(m,Math.floor(p.atk*multi));skillCD[i]=[1.2,4,6][i];}
-function log(s){let d=document.createElement('div');d.className='msg';d.textContent=s;$('log').prepend(d);while($('log').children.length>5)$('log').lastChild.remove()}
-addEventListener('keydown',e=>{keys[e.key.toLowerCase()]=true;if(e.key===' ')attack();if(['1','2','3'].includes(e.key))useSkill(+e.key-1);if(e.key.toLowerCase()==='q')p.hp=Math.min(p.maxhp,p.hp+60)});
+import * as THREE from 'three';
+import { PTLoader } from '@fakl-code/pt-loader';
+
+const canvas=document.querySelector('#game'), status=document.querySelector('#status'), load=document.querySelector('#loading'), loadText=document.querySelector('#loadText'), animLabel=document.querySelector('#anim');
+const renderer=new THREE.WebGLRenderer({canvas,antialias:true});renderer.setPixelRatio(Math.min(devicePixelRatio,2));renderer.setSize(innerWidth,innerHeight);
+const scene=new THREE.Scene();scene.background=new THREE.Color(0x78956f);scene.fog=new THREE.Fog(0x78956f,18,70);
+const camera=new THREE.PerspectiveCamera(52,innerWidth/innerHeight,.1,200);camera.position.set(0,4.2,7);
+scene.add(new THREE.HemisphereLight(0xffffff,0x33452f,2.2));
+const sun=new THREE.DirectionalLight(0xffffff,2);sun.position.set(6,12,4);scene.add(sun);
+const ground=new THREE.Mesh(new THREE.PlaneGeometry(100,100,30,30),new THREE.MeshLambertMaterial({color:0x466442}));ground.rotation.x=-Math.PI/2;scene.add(ground);
+const grid=new THREE.GridHelper(100,50,0x2f4930,0x587457);grid.position.y=.01;scene.add(grid);
+for(let i=0;i<45;i++){const t=new THREE.Mesh(new THREE.ConeGeometry(.45+Math.random()*.45,2.5+Math.random()*2,7),new THREE.MeshLambertMaterial({color:0x294b2b}));t.position.set((Math.random()-.5)*75,1.4,(Math.random()-.5)*75);if(Math.abs(t.position.x)<6&&Math.abs(t.position.z)<6)t.position.x+=10;scene.add(t)}
+
+let character=null,mixer=null,clips=[],clipIndex=0,current='',yaw=0,drag=false,lastX=0;
+const keys={}; let joy={active:false,x:0,y:0};
+const loaderManifest=await fetch('./pt-assets/manifest.json').then(r=>r.json());
+const pt=new PTLoader({baseUrl:'./pt-assets/',manifest:loaderManifest,options:{lighting:'unshaded',bindInverses:'pose'}});
+
+function say(s){status.textContent=s}
+function findClip(words){for(const w of words){let x=clips.find(n=>n.toLowerCase().includes(w));if(x)return x}return null}
+function play(name,fade=.16){if(!character||!name||name===current)return;const old=mixer?mixer._actions.find(a=>a.isRunning()):null;let a=character.play(name,mixer);if(a){if(old&&old!==a){a.reset();a.fadeIn(fade);old.fadeOut(fade)}current=name;animLabel.textContent='Animation: '+name}}
+try{
+ loadText.textContent='Parsing dkn.inx / dkn.smd / dkn.smb…';
+ character=await pt.loadCharacter('char/monster/d_kn/dkn.inx');
+ scene.add(character.object);
+ character.object.scale.setScalar(.018);
+ character.object.position.set(0,0,0);
+ mixer=character.createMixer();clips=character.clipNames||[];
+ say('Actual Knight loaded. Clips: '+(clips.join(', ')||'No named clips found'));
+ let idle=findClip(['idle','stand'])||clips[0]; if(idle)play(idle,0);
+ load.style.display='none';
+}catch(e){
+ console.error(e); loadText.textContent='Knight loader error — '+e.message;
+ say('Open DevTools Console and send me the exact error if this remains on screen.');
+}
+
+addEventListener('keydown',e=>{keys[e.key.toLowerCase()]=true;if(e.code==='Space'){e.preventDefault();attack()}if(e.key==='1')cycle()});
 addEventListener('keyup',e=>keys[e.key.toLowerCase()]=false);
-document.querySelectorAll('#skills button[data-skill]').forEach(b=>b.onclick=()=>useSkill(+b.dataset.skill-1));$('potion').onclick=()=>p.hp=Math.min(p.maxhp,p.hp+60);
-$('inventory').onclick=()=>{renderInv();$('inv').classList.remove('hidden')};$('closeInv').onclick=()=>$('inv').classList.add('hidden');$('fullscreen').onclick=()=>document.documentElement.requestFullscreen?.();
-function renderInv(){$('items').innerHTML=p.items.length?p.items.map(x=>`<div class="loot">⚔️ ${x[0]} <b>+${x[1]}</b></div>`).join(''):'<p>No items yet. Hunt monsters!</p>'}
-let joy={active:false,x:0,y:0};function joyEvt(e){let r=$('joy').getBoundingClientRect(),t=e.touches?e.touches[0]:e;let dx=t.clientX-(r.left+r.width/2),dy=t.clientY-(r.top+r.height/2),l=Math.hypot(dx,dy)||1,m=Math.min(35,l);joy.x=dx/l;joy.y=dy/l;$('stick').style.transform=`translate(${joy.x*m}px,${joy.y*m}px)`}
-$('joy').addEventListener('touchstart',e=>{joy.active=true;joyEvt(e)},{passive:true});$('joy').addEventListener('touchmove',joyEvt,{passive:true});$('joy').addEventListener('touchend',()=>{joy.active=false;joy.x=joy.y=0;$('stick').style.transform=''});
-function update(dt){if($('start').style.display!=='none')return;let dx=(keys.d||keys.arrowright?1:0)-(keys.a||keys.arrowleft?1:0),dy=(keys.s||keys.arrowdown?1:0)-(keys.w||keys.arrowup?1:0);if(joy.active){dx=joy.x;dy=joy.y}let l=Math.hypot(dx,dy)||1;p.x=Math.max(30,Math.min(world.w-30,p.x+dx/l*190*dt));p.y=Math.max(30,Math.min(world.h-30,p.y+dy/l*190*dt));attackCD=Math.max(0,attackCD-dt);skillCD=skillCD.map(x=>Math.max(0,x-dt));for(let m of mobs){if(m.dead)continue;let d=dist(p,m);if(d<260){let vx=(p.x-m.x)/(d||1),vy=(p.y-m.y)/(d||1);if(d>45){m.x+=vx*45*dt;m.y+=vy*45*dt}else if(Math.random()<dt*.7){p.hp=Math.max(0,p.hp-Math.max(1,m.atk-p.def));if(p.hp<=0){p.hp=p.maxhp;p.x=world.w/2;p.y=world.h/2;log('You were defeated and revived in town.')}}}}mobs=mobs.filter(m=>!m.dead);if(mobs.length<10)spawn(6);particles.forEach(x=>x.t+=dt);particles=particles.filter(x=>x.t<1);camera.x=p.x-innerWidth/2;camera.y=p.y-innerHeight/2;updateUI()}
-function updateUI(){$('classIcon').textContent=p.icon;$('charName').textContent=p.name;$('className').textContent=`${p.cls} • Lv. ${p.lv}`;$('gold').textContent=p.gold;$('gems').textContent=p.gems;$('hpbar').style.width=(p.hp/p.maxhp*100)+'%';$('mpbar').style.width=(p.mp/p.maxmp*100)+'%';$('xpbar').style.width=(p.xp/(p.lv*100)*100)+'%';$('hptext').textContent=`${p.hp}/${p.maxhp}`;$('mptext').textContent=`${p.mp}/${p.maxmp}`;$('questText').textContent=`Defeat Forest Monsters ${Math.min(quest,10)}/10`;let m=nearest();$('target').textContent=m?`${m.icon} ${m.name}  ${Math.max(0,m.hp)}/${m.max}`:''}
-function draw(){let w=innerWidth,h=innerHeight;ctx.clearRect(0,0,w,h);ctx.save();ctx.translate(-camera.x,-camera.y);ctx.fillStyle='#28422d';ctx.fillRect(0,0,world.w,world.h);ctx.strokeStyle='#35573a';ctx.lineWidth=1;for(let x=0;x<world.w;x+=80){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,world.h);ctx.stroke()}for(let y=0;y<world.h;y+=80){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(world.w,y);ctx.stroke()}ctx.fillStyle='#55523a';ctx.fillRect(world.w/2-180,world.h/2-130,360,260);ctx.fillStyle='#d4bd78';ctx.font='18px Arial';ctx.fillText('GREEN FOREST OUTPOST',world.w/2-105,world.h/2-95);for(let m of mobs){ctx.font='34px Arial';ctx.fillText(m.icon,m.x-17,m.y+12);ctx.fillStyle='#111';ctx.fillRect(m.x-24,m.y-31,48,6);ctx.fillStyle='#c43c32';ctx.fillRect(m.x-24,m.y-31,48*Math.max(0,m.hp/m.max),6)}ctx.font='38px Arial';ctx.fillText(p.icon,p.x-19,p.y+13);ctx.fillStyle='#fff';ctx.font='12px Arial';ctx.textAlign='center';ctx.fillText(p.name,p.x,p.y-27);ctx.textAlign='left';for(let q of particles){ctx.fillStyle=`rgba(255,220,100,${1-q.t})`;ctx.font='bold 17px Arial';ctx.fillText(q.text,q.x,q.y-q.t*35)}ctx.restore()}
-function loop(t){let dt=Math.min(.033,(t-last)/1000||0);last=t;update(dt);draw();requestAnimationFrame(loop)}requestAnimationFrame(loop);
-if('serviceWorker'in navigator)navigator.serviceWorker.register('service-worker.js');
+function attack(){let a=findClip(['attack','atk','skill']);if(a){play(a);setTimeout(()=>play(findClip(['idle','stand'])||clips[0]),700)}}
+function cycle(){if(!clips.length)return;clipIndex=(clipIndex+1)%clips.length;play(clips[clipIndex]);say('Clip '+(clipIndex+1)+'/'+clips.length+': '+clips[clipIndex])}
+document.querySelector('#attack').onclick=attack;document.querySelector('#cycle').onclick=cycle;document.querySelector('#fs').onclick=()=>document.documentElement.requestFullscreen?.();
+
+canvas.addEventListener('pointerdown',e=>{drag=true;lastX=e.clientX;canvas.setPointerCapture(e.pointerId)});
+canvas.addEventListener('pointermove',e=>{if(drag){yaw-=(e.clientX-lastX)*.006;lastX=e.clientX}});
+canvas.addEventListener('pointerup',()=>drag=false);
+
+const j=document.querySelector('#joy'),stick=document.querySelector('#stick');
+function je(e){let r=j.getBoundingClientRect(),t=e.touches[0],dx=t.clientX-(r.left+60),dy=t.clientY-(r.top+60),l=Math.hypot(dx,dy)||1,m=Math.min(35,l);joy.x=dx/l;joy.y=dy/l;stick.style.transform=`translate(${joy.x*m}px,${joy.y*m}px)`}
+j.addEventListener('touchstart',e=>{joy.active=true;je(e)},{passive:true});j.addEventListener('touchmove',je,{passive:true});j.addEventListener('touchend',()=>{joy.active=false;joy.x=joy.y=0;stick.style.transform=''});
+const clock=new THREE.Clock();
+function frame(){
+ const dt=Math.min(clock.getDelta(),.05),elapsed=clock.elapsedTime;
+ if(character){
+  let x=(keys.d||keys.arrowright?1:0)-(keys.a||keys.arrowleft?1:0),z=(keys.s||keys.arrowdown?1:0)-(keys.w||keys.arrowup?1:0);
+  if(joy.active){x=joy.x;z=joy.y}
+  let moving=Math.hypot(x,z)>.1,run=keys.shift;
+  if(moving){
+   let a=yaw,wx=x*Math.cos(a)+z*Math.sin(a),wz=-x*Math.sin(a)+z*Math.cos(a),l=Math.hypot(wx,wz)||1,s=(run?5:3)*dt;
+   character.object.position.x+=wx/l*s;character.object.position.z+=wz/l*s;
+   character.object.rotation.y=Math.atan2(wx/l,wz/l);
+   if(!current.toLowerCase().includes('attack')) play(findClip(run?['run','walk']:['walk','run'])||findClip(['idle'])||clips[0]);
+  }else if(!current.toLowerCase().includes('attack'))play(findClip(['idle','stand'])||clips[0]);
+  mixer?.update(dt);pt.update(elapsed);
+  const pos=character.object.position,rad=7;
+  camera.position.set(pos.x+Math.sin(yaw)*rad,pos.y+3.7,pos.z+Math.cos(yaw)*rad);camera.lookAt(pos.x,pos.y+1.4,pos.z);
+ }
+ renderer.render(scene,camera);requestAnimationFrame(frame)
+}frame();
+addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight)});
+if('serviceWorker'in navigator)navigator.serviceWorker.register('./service-worker.js');
