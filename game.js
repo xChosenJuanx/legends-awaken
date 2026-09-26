@@ -43,7 +43,7 @@ function play(n,fade=0){
  if(!next){console.warn('PTCharacter.play failed',n);return}
  next.enabled=true;next.paused=false;next.setEffectiveWeight(1);next.setEffectiveTimeScale(1);next.play();
  currentAction=next;current=n;
- console.log('[Anim 3.5]',n,'duration',clip.duration,'tracks',clip.tracks.length,'reversed',ch.reversed?.has?.(n),
+ console.log('[Anim 3.6]',n,'duration',clip.duration,'tracks',clip.tracks.length,'reversed',ch.reversed?.has?.(n),
    'root',mixer.getRoot()?.name,'firstTracks',clip.tracks.slice(0,6).map(t=>t.name));
 }
 function groundVisual(){visual.position.y=0;ch.object.updateMatrixWorld(true);const b=new THREE.Box3().setFromObject(ch.object);if(isFinite(b.min.y))visual.position.y=-b.min.y+.02}
@@ -77,7 +77,7 @@ function loop(){
  loader.update(elapsed);
  mixer.update(dt);
  ch.object.updateMatrixWorld(true);
- animProbe.t+=dt;if(animProbe.t>.35){animProbe.t=0;const clip=ch.clips?.[current],a=currentAction;let changed=0,maxDelta=0;if(animProbe.bones?.length){for(let i=0;i<animProbe.bones.length;i++){const q=animProbe.bones[i].quaternion,old=animProbe.q[i];const d=1-Math.abs(old.dot(q));if(d>1e-8)changed++;if(d>maxDelta)maxDelta=d;old.copy(q)}}const first=clip?.tracks?.[0];$('#debug').textContent=`3.5 MATRIX | ${current} | t ${a?a.time.toFixed(2):'-'} | run ${a?.isRunning?.()?'YES':'NO'} | tracks ${clip?.tracks?.length??0} | moving bones ${changed}/${animProbe.bones?.length||0} | Δ ${maxDelta.toExponential(1)} | ${first?.name||'no track'}`;}
+ animProbe.t+=dt;if(animProbe.t>.35){animProbe.t=0;const clip=ch.clips?.[current],a=currentAction;let changed=0,maxDelta=0;if(animProbe.bones?.length){for(let i=0;i<animProbe.bones.length;i++){const q=animProbe.bones[i].quaternion,old=animProbe.q[i];const d=1-Math.abs(old.dot(q));if(d>1e-8)changed++;if(d>maxDelta)maxDelta=d;old.copy(q)}}const first=clip?.tracks?.[0];$('#debug').textContent=`3.6 BOTH+POSE | ${current} | t ${a?a.time.toFixed(2):'-'} | run ${a?.isRunning?.()?'YES':'NO'} | tracks ${clip?.tracks?.length??0} | moving bones ${changed}/${animProbe.bones?.length||0} | Δ ${maxDelta.toExponential(1)} | ${first?.name||'no track'}`;}
  // Critical stabilization after every animation update.
  // PTLoader animation controls the skeleton; do not reset pelvis/root each frame.
  if(terrainMeshes.length && elapsed-terrainLast>.09){terrainLast=elapsed;const y=terrainHeight(player.position.x,player.position.z,player.position.y);if(y!==null){terrainReady=true;player.position.y+=(y-player.position.y)*Math.min(1,dt*18);}}
