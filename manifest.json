@@ -1,8 +1,8 @@
 {
-  "name": "Legends Awaken Knight 3D",
+  "name": "Legends Awaken",
   "short_name": "Legends Awaken",
   "start_url": "./",
   "display": "fullscreen",
-  "background_color": "#0b110d",
-  "theme_color": "#0b110d"
+  "background_color": "#070b08",
+  "theme_color": "#070b08"
 }

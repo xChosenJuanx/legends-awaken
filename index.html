@@ -1,21 +1,19 @@
-<!doctype html>
-<html><head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
-<title>Legends Awaken — Knight 3D</title>
-<link rel="manifest" href="manifest.json"><link rel="stylesheet" href="style.css">
-<script type="importmap">
-{"imports":{
- "three":"https://esm.sh/three@0.180.0",
- "@fakl-code/pt-loader":"https://esm.sh/@fakl-code/pt-loader@0.1.5?external=three"
-}}
-</script></head>
-<body>
-<div id="loading"><div><h1>LEGENDS AWAKEN</h1><p id="loadText">Loading actual Knight files…</p><small>dkn.smd + dkn.smb + dkn.inx</small></div></div>
-<div id="hud"><b>🛡️ Knight</b><span>Lv. 1</span><div class="hp"><i></i></div><small id="anim">Animation: loading…</small></div>
-<div id="help">WASD / Arrows — Move<br>Space — Attack<br>Shift — Run<br>1 — Cycle animation<br>Drag — Rotate camera</div>
-<div id="status"></div>
+<!doctype html><html><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>Legends Awaken — Build 3</title><link rel="manifest" href="manifest.json"><link rel="stylesheet" href="style.css">
+<script type="importmap">{"imports":{"three":"https://esm.sh/three@0.180.0","@fakl-code/pt-loader":"https://esm.sh/@fakl-code/pt-loader@0.1.5?external=three"}}</script></head>
+<body><canvas id="game"></canvas>
+<div id="loading"><div><h1>LEGENDS AWAKEN</h1><div class="spinner"></div><p id="loadText">Preparing Ancient World…</p></div></div>
+<div id="top"><div><b>JUAN</b><small> KNIGHT • LV. <span id="lv">1</span></small></div><div class="bar hp"><i id="hp"></i><span id="hpt">100 / 100</span></div><div class="bar mp"><i id="mp"></i><span>100 / 100</span></div><div class="bar xp"><i id="xp"></i></div></div>
+<div id="quest"><b>⚔ FIELD MISSION</b><span id="questText">Defeat monsters 0 / 10</span><small>Reward: 500 Gold + EXP</small></div>
+<div id="target" class="hide"><b id="targetName">Monster</b><div class="bar hp"><i id="targetHp"></i></div></div>
+<div id="notice"></div><button id="fullscreen">⛶</button>
 <div id="joy"><div id="stick"></div></div>
-<div id="skills"><button id="attack">⚔️<small>Attack</small></button><button id="cycle">🎞️<small>Anim</small></button><button id="fs">⛶<small>Full</small></button></div>
-<canvas id="game"></canvas>
-<script type="module" src="game.js"></script>
-</body></html>
+<div id="skills">
+<button data-skill="0"><img src="ui/skills/mn23-brandish.png"><kbd>SPACE</kbd></button>
+<button data-skill="1"><img src="ui/skills/mn26-piercing.png"><kbd>1</kbd></button>
+<button data-skill="2"><img src="ui/skills/mn50-g-cross.png"><kbd>2</kbd></button>
+<button data-skill="3"><img src="ui/skills/mn83-c-moon.png"><kbd>3</kbd></button>
+<button id="potion">🧪<kbd>Q</kbd></button></div>
+<div id="debug">Loading animations…</div>
+<script type="module" src="game.js"></script></body></html>
