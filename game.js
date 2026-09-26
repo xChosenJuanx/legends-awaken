@@ -8,7 +8,7 @@ const sun=new THREE.DirectionalLight(0xffffff,1.4);sun.position.set(10,20,8);sce
 const fallbackGround=new THREE.Mesh(new THREE.PlaneGeometry(180,180),new THREE.MeshLambertMaterial({color:0x526d47}));
 fallbackGround.rotation.x=-Math.PI/2;scene.add(fallbackGround);
 const manifest=await fetch('./pt-assets/manifest.json').then(r=>r.json());
-const loader=new PTLoader({baseUrl:'./pt-assets/',manifest,useWorker:true,options:{lighting:'unshaded',bindInverses:'pose'}});
+const loader=new PTLoader({baseUrl:'./pt-assets/',manifest,useWorker:true,options:{lighting:'unshaded',bindInverses:'matrix'}});
 let stage=null;
 try{$('#loadText').textContent='Loading actual Ancient World map…';stage=await loader.loadStage('field/AncientW/ancientW.smd');scene.add(stage);
  const b=new THREE.Box3().setFromObject(stage),sz=b.getSize(new THREE.Vector3()),c=b.getCenter(new THREE.Vector3()),m=Math.max(sz.x,sz.z);
@@ -21,7 +21,8 @@ try{$('#loadText').textContent='Loading Knight + original animations…';ch=awai
  ch.object.updateMatrixWorld(true);let b=new THREE.Box3().setFromObject(ch.object),h=b.getSize(new THREE.Vector3()).y;let sc=(isFinite(h)&&h>0)?1.85/h:.018;ch.object.scale.setScalar(sc);ch.object.updateMatrixWorld(true);
  // lock skeleton root translation/rotation to bind pose: removes PT root-motion tumble/burying
  rootBone=ch.skeleton?.bones?.find(b=>/pelvis|root/i.test(b.name))||ch.skeleton?.bones?.[0]||null;
- if(rootBone)rootPose={p:rootBone.position.clone(),q:rootBone.quaternion.clone(),s:rootBone.scale.clone()};
+ if(rootBone)rootPose={p:rootBone.position.clone()};
+ // One-time feet alignment only. Never re-snap the animated mesh every frame.
  groundVisual();
  play(find(['idle','stand'])||clips[0],0);$('#debug').textContent='Knight clips: '+clips.join(' • ');
 }catch(e){$('#loadText').textContent='Knight error: '+e.message;throw e}
@@ -56,8 +57,7 @@ function loop(){
  else if(attackLock<=0)play(find(['idle','stand'])||clips[0]);
  mixer.update(dt);
  // Critical stabilization after every animation update.
- if(rootBone&&rootPose){rootBone.position.copy(rootPose.p);rootBone.quaternion.copy(rootPose.q);rootBone.scale.copy(rootPose.s);rootBone.updateMatrix();}
- groundVisual();
+ if(rootBone&&rootPose){rootBone.position.copy(rootPose.p);rootBone.updateMatrix();}
  for(const m of mobs){if(m.dead){m.dead-=dt;if(m.dead<=0){m.hp=m.max;m.o.visible=true;let a=Math.random()*6.28,r=18+Math.random()*25;m.o.position.set(Math.cos(a)*r,0,Math.sin(a)*r)}continue}let d=m.o.position.distanceTo(player.position);if(d<8&&d>1.4){m.o.position.lerp(player.position,dt*.18);m.o.lookAt(player.position.x,0,player.position.z)}if(d<1.6&&Math.random()<dt*.25){hp=Math.max(0,hp-5);ui();if(hp<=0){hp=100;player.position.set(0,0,0);notice('RESPAWNED');ui()}}}
  for(let i=fx.length-1;i>=0;i--){let p=fx[i];p.userData.life-=dt;p.position.addScaledVector(p.userData.v,dt);p.userData.v.y-=5*dt;if(p.userData.life<=0){scene.remove(p);fx.splice(i,1)}}
  loader.update(elapsed);
