@@ -8,7 +8,7 @@ const sun=new THREE.DirectionalLight(0xffffff,1.4);sun.position.set(10,20,8);sce
 const fallbackGround=new THREE.Mesh(new THREE.PlaneGeometry(180,180),new THREE.MeshLambertMaterial({color:0x526d47}));
 fallbackGround.rotation.x=-Math.PI/2;scene.add(fallbackGround);
 const manifest=await fetch('./pt-assets/manifest.json').then(r=>r.json());
-const loader=new PTLoader({baseUrl:'./pt-assets/',manifest,useWorker:true,options:{lighting:'unshaded',bindInverses:'pose'}});
+const loader=new PTLoader({baseUrl:'./pt-assets/',manifest,useWorker:false,options:{lighting:'unshaded',objectTransform:'matrix',bindInverses:'matrix'}});
 let stage=null,terrainMeshes=[],terrainRay=new THREE.Raycaster(),terrainDown=new THREE.Vector3(0,-1,0),terrainNormal=new THREE.Vector3(),terrainLast=0,terrainReady=false;
 // Terrain sampling uses the rendered stage geometry, not the full stage bounding-box minimum.
 function terrainHeight(x,z,referenceY=0){if(!terrainMeshes.length)return null;terrainRay.set(new THREE.Vector3(x,1200,z),terrainDown);terrainRay.far=2400;const hits=terrainRay.intersectObjects(terrainMeshes,false);const walkable=[];for(const hit of hits){if(!hit.face)continue;terrainNormal.copy(hit.face.normal).transformDirection(hit.object.matrixWorld);if(terrainNormal.y>.48)walkable.push(hit.point.y)}if(!walkable.length)return null;walkable.sort((a,b)=>a-b);if(!terrainReady)return walkable[walkable.length-1];return walkable.reduce((a,b)=>Math.abs(b-referenceY)<Math.abs(a-referenceY)?b:a);}
@@ -29,22 +29,22 @@ try{$('#loadText').textContent='Loading Knight + original animations…';ch=awai
  // One-time feet alignment only. Never re-snap the animated mesh every frame.
  groundVisual();
  const spawnY=terrainHeight(0,0,0);if(spawnY!==null){player.position.y=spawnY;terrainReady=true;$('#debug').textContent='Terrain spawn Y: '+spawnY.toFixed(2)}
- animProbe.bone=ch.skeleton?.bones?.find(b=>b.parent?.isBone)||ch.skeleton?.bones?.[1]||ch.skeleton?.bones?.[0]||null;if(animProbe.bone)animProbe.p=animProbe.bone.quaternion.clone();
+ animProbe.bones=ch.skeleton?.bones||[];animProbe.q=animProbe.bones.map(b=>b.quaternion.clone());
  play(find(['idle','stand'])||clips[0],0);$('#debug').textContent='Knight clips: '+clips.join(' • ')+' | terrain meshes: '+terrainMeshes.length;
 }catch(e){$('#loadText').textContent='Knight error: '+e.message;throw e}
 function find(a){for(const w of a){const n=clips.find(x=>x.toLowerCase().includes(w));if(n)return n}}
-function play(n,fade=.12){
+function play(n,fade=0){
  if(!n||n===current)return;
  const clip=ch.clips?.[n];
  if(!clip){console.warn('Missing clip',n);return}
- // Use PTCharacter.play(): it knows which original PT motions are authored reversed.
- const old=currentAction;
+ // Controlled native playback: no cross-fade or manual skeleton edits while validating PT motion.
+ if(currentAction){currentAction.stop();currentAction=null}
  const next=ch.play(n,mixer);
  if(!next){console.warn('PTCharacter.play failed',n);return}
- next.enabled=true;next.paused=false;next.setEffectiveWeight(1);
- if(old&&old!==next&&fade>0){old.fadeOut(fade);next.reset().fadeIn(fade).play()}
+ next.enabled=true;next.paused=false;next.setEffectiveWeight(1);next.setEffectiveTimeScale(1);next.play();
  currentAction=next;current=n;
- console.log('[Anim/PT native]',n,'duration',clip.duration,'tracks',clip.tracks.length,'reversed',ch.reversed?.has?.(n));
+ console.log('[Anim 3.5]',n,'duration',clip.duration,'tracks',clip.tracks.length,'reversed',ch.reversed?.has?.(n),
+   'root',mixer.getRoot()?.name,'firstTracks',clip.tracks.slice(0,6).map(t=>t.name));
 }
 function groundVisual(){visual.position.y=0;ch.object.updateMatrixWorld(true);const b=new THREE.Box3().setFromObject(ch.object);if(isFinite(b.min.y))visual.position.y=-b.min.y+.02}
 const mobs=[],mobGeo=new THREE.CapsuleGeometry(.45,.9,5,8),mobMat=[0x577e35,0x6d4c38,0x59636c,0x754b35];
@@ -77,7 +77,7 @@ function loop(){
  loader.update(elapsed);
  mixer.update(dt);
  ch.object.updateMatrixWorld(true);
- animProbe.t+=dt;if(animProbe.t>.35){animProbe.t=0;const clip=ch.clips?.[current],a=currentAction;let motion='n/a';if(animProbe.bone&&animProbe.p){const d=1-Math.abs(animProbe.p.dot(animProbe.bone.quaternion));motion=d>1e-7?'YES':'NO';animProbe.p.copy(animProbe.bone.quaternion)}$('#debug').textContent=`Anim ${current} | time ${a?a.time.toFixed(2):'-'} | running ${a?.isRunning?.()?'YES':'NO'} | speed ${a?.getEffectiveTimeScale?.().toFixed?.(1)??'-'} | reversed ${ch.reversed?.has?.(current)?'YES':'NO'} | tracks ${clip?.tracks?.length??0} | bone ${motion}`;}
+ animProbe.t+=dt;if(animProbe.t>.35){animProbe.t=0;const clip=ch.clips?.[current],a=currentAction;let changed=0,maxDelta=0;if(animProbe.bones?.length){for(let i=0;i<animProbe.bones.length;i++){const q=animProbe.bones[i].quaternion,old=animProbe.q[i];const d=1-Math.abs(old.dot(q));if(d>1e-8)changed++;if(d>maxDelta)maxDelta=d;old.copy(q)}}const first=clip?.tracks?.[0];$('#debug').textContent=`3.5 MATRIX | ${current} | t ${a?a.time.toFixed(2):'-'} | run ${a?.isRunning?.()?'YES':'NO'} | tracks ${clip?.tracks?.length??0} | moving bones ${changed}/${animProbe.bones?.length||0} | Δ ${maxDelta.toExponential(1)} | ${first?.name||'no track'}`;}
  // Critical stabilization after every animation update.
  // PTLoader animation controls the skeleton; do not reset pelvis/root each frame.
  if(terrainMeshes.length && elapsed-terrainLast>.09){terrainLast=elapsed;const y=terrainHeight(player.position.x,player.position.z,player.position.y);if(y!==null){terrainReady=true;player.position.y+=(y-player.position.y)*Math.min(1,dt*18);}}
