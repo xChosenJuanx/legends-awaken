@@ -37,11 +37,14 @@ function play(n,fade=.12){
  if(!n||n===current)return;
  const clip=ch.clips?.[n];
  if(!clip){console.warn('Missing clip',n);return}
- const next=mixer.clipAction(clip,ch.object);
- next.enabled=true;next.paused=false;next.setLoop(THREE.LoopRepeat,Infinity);next.clampWhenFinished=false;next.setEffectiveTimeScale(1);next.setEffectiveWeight(1);next.reset();
- if(currentAction&&currentAction!==next){if(fade>0){currentAction.crossFadeTo(next,fade,false)}else{currentAction.stop();next.play()}}else next.play();
+ // Use PTCharacter.play(): it knows which original PT motions are authored reversed.
+ const old=currentAction;
+ const next=ch.play(n,mixer);
+ if(!next){console.warn('PTCharacter.play failed',n);return}
+ next.enabled=true;next.paused=false;next.setEffectiveWeight(1);
+ if(old&&old!==next&&fade>0){old.fadeOut(fade);next.reset().fadeIn(fade).play()}
  currentAction=next;current=n;
- console.log('[Anim]',n,'duration',clip.duration,'tracks',clip.tracks.length,'root',mixer.getRoot()?.name||'(group)');
+ console.log('[Anim/PT native]',n,'duration',clip.duration,'tracks',clip.tracks.length,'reversed',ch.reversed?.has?.(n));
 }
 function groundVisual(){visual.position.y=0;ch.object.updateMatrixWorld(true);const b=new THREE.Box3().setFromObject(ch.object);if(isFinite(b.min.y))visual.position.y=-b.min.y+.02}
 const mobs=[],mobGeo=new THREE.CapsuleGeometry(.45,.9,5,8),mobMat=[0x577e35,0x6d4c38,0x59636c,0x754b35];
@@ -70,16 +73,16 @@ function loop(){
  let moving=Math.hypot(x,z)>.12;
  if(moving){let l=Math.hypot(x,z),wx=(x*Math.cos(camYaw)+z*Math.sin(camYaw))/l,wz=(-x*Math.sin(camYaw)+z*Math.cos(camYaw))/l;player.position.x+=wx*4.2*dt;player.position.z+=wz*4.2*dt;player.rotation.y=Math.atan2(wx,wz);if(attackLock<=0)play(find(['run','walk'])||clips[0]);}
  else if(attackLock<=0)play(find(['idle','stand'])||clips[0]);
+ // PT runtime updates first; skeletal mixer evaluates LAST so no PT object updater can overwrite the pose.
+ loader.update(elapsed);
  mixer.update(dt);
- // Force world matrices after mixer evaluation; no bone transforms are overwritten.
  ch.object.updateMatrixWorld(true);
- animProbe.t+=dt;if(animProbe.t>.35){animProbe.t=0;const clip=ch.clips?.[current],a=currentAction;let motion='n/a';if(animProbe.bone&&animProbe.p){const d=1-Math.abs(animProbe.p.dot(animProbe.bone.quaternion));motion=d>1e-7?'YES':'NO';animProbe.p.copy(animProbe.bone.quaternion)}$('#debug').textContent=`Anim ${current} | time ${a?a.time.toFixed(2):'-'} | running ${a?.isRunning?.()?'YES':'NO'} | tracks ${clip?.tracks?.length??0} | bone motion ${motion} | scale 82%`;}
+ animProbe.t+=dt;if(animProbe.t>.35){animProbe.t=0;const clip=ch.clips?.[current],a=currentAction;let motion='n/a';if(animProbe.bone&&animProbe.p){const d=1-Math.abs(animProbe.p.dot(animProbe.bone.quaternion));motion=d>1e-7?'YES':'NO';animProbe.p.copy(animProbe.bone.quaternion)}$('#debug').textContent=`Anim ${current} | time ${a?a.time.toFixed(2):'-'} | running ${a?.isRunning?.()?'YES':'NO'} | speed ${a?.getEffectiveTimeScale?.().toFixed?.(1)??'-'} | reversed ${ch.reversed?.has?.(current)?'YES':'NO'} | tracks ${clip?.tracks?.length??0} | bone ${motion}`;}
  // Critical stabilization after every animation update.
  // PTLoader animation controls the skeleton; do not reset pelvis/root each frame.
  if(terrainMeshes.length && elapsed-terrainLast>.09){terrainLast=elapsed;const y=terrainHeight(player.position.x,player.position.z,player.position.y);if(y!==null){terrainReady=true;player.position.y+=(y-player.position.y)*Math.min(1,dt*18);}}
  for(const m of mobs){if(m.dead){m.dead-=dt;if(m.dead<=0){m.hp=m.max;m.o.visible=true;let a=Math.random()*6.28,r=18+Math.random()*25;m.o.position.set(Math.cos(a)*r,0,Math.sin(a)*r)}continue}let d=m.o.position.distanceTo(player.position);if(d<8&&d>1.4){m.o.position.lerp(player.position,dt*.18);m.o.lookAt(player.position.x,0,player.position.z)}if(d<1.6&&Math.random()<dt*.25){hp=Math.max(0,hp-5);ui();if(hp<=0){hp=100;player.position.set(0,0,0);notice('RESPAWNED');ui()}}}
  for(let i=fx.length-1;i>=0;i--){let p=fx[i];p.userData.life-=dt;p.position.addScaledVector(p.userData.v,dt);p.userData.v.y-=5*dt;if(p.userData.life<=0){scene.remove(p);fx.splice(i,1)}}
- loader.update(elapsed);
  const p=player.position,dist=6.2;camera.position.lerp(new THREE.Vector3(p.x+Math.sin(camYaw)*dist,p.y+3.6,p.z+Math.cos(camYaw)*dist),.12);camera.lookAt(p.x,p.y+1.25,p.z);
  renderer.render(scene,camera);requestAnimationFrame(loop)
 }loop();
