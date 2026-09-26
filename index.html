@@ -1,29 +1,39 @@
-<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Idle RPG: Legends Awaken</title><link rel="manifest" href="manifest.json"><link rel="stylesheet" href="style.css"></head>
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>Legends Awaken MMORPG</title>
+<link rel="manifest" href="manifest.json"><link rel="stylesheet" href="style.css">
+</head>
 <body>
-<header><div><b>⚔ IDLE RPG</b><small>LEGENDS AWAKEN • BUILD 1</small></div><div class="res">🪙 <span id="gold">0</span>　💎 <span id="gems">25</span></div></header>
-<main>
-<section class="top">
-<aside class="panel hero">
-<h2>WARRIOR <span id="lvl">Lv. 1</span></h2><div class="portrait">🛡️<br>⚔️</div>
-<div class="bar"><i id="xpbar"></i></div><small>EXP <span id="xp">0</span>/<span id="xpneed">100</span></small>
-<div class="stats"><span>❤️ HP <b id="hpstat">120</b></span><span>⚔ ATK <b id="atk">18</b></span><span>🛡 DEF <b id="def">5</b></span><span>💥 CRIT <b id="crit">8%</b></span></div>
-</aside>
-<section class="panel battle">
-<div class="stage"><b id="stage">1-1 GREEN FOREST</b><span id="progress">0 / 10</span></div>
-<div class="scene">
-<div class="unit player" id="player">🧑‍🚀<div class="hp"><i id="php"></i></div></div>
-<div id="fx"></div>
-<div class="unit monster" id="monster">🟢<div class="hp"><i id="mhp"></i></div><b id="monsterName">SLIME</b></div>
+<div id="start" class="overlay">
+  <div class="card">
+    <h1>LEGENDS AWAKEN</h1><p class="gold">MMORPG • PWA Prototype</p>
+    <h3>Choose your class</h3>
+    <div id="classes" class="classes"></div>
+    <input id="name" maxlength="14" value="Juan" placeholder="Character name">
+    <button id="enter">ENTER WORLD</button>
+    <small>Character mapping is based on your Priston Tale character folders. Original .SMB/.SMD/.INX models need a web conversion step before they can render in-browser.</small>
+  </div>
 </div>
-<div class="skills"><button id="skill">🔥 POWER SLASH <small id="cd">READY</small></button><button id="boss" disabled>☠ CHALLENGE BOSS</button></div>
-</section>
-<aside class="panel info"><h3>STAGE INFO</h3><p>Monster <b id="mlevel">Lv. 1</b></p><p>Reward <b id="reward">5–10 Gold</b></p><hr><h3>QUEST</h3><p>Defeat monsters</p><div class="bar quest"><i id="questbar"></i></div><small><span id="kills">0</span> / 50</small><button id="claim" disabled>CLAIM 500 🪙</button></aside>
-</section>
-<section class="bottom">
-<div class="panel tabs"><button class="active" data-tab="inventory">🎒 INVENTORY</button><button data-tab="upgrade">🔨 UPGRADE</button><button data-tab="map">🗺 MAP</button><button data-tab="help">📜 INFO</button></div>
-<div class="panel content" id="content"></div>
-</section>
-</main>
-<footer>AUTO BATTLE: <b>ON</b> • Progress saves automatically in this browser • Offline Gold enabled</footer>
-<script src="game.js"></script><script>if('serviceWorker'in navigator)navigator.serviceWorker.register('service-worker.js')</script></body></html>
+
+<div id="hud">
+ <div class="portrait"><span id="classIcon">🛡️</span><div><b id="charName">Juan</b><small id="className">Knight • Lv. 1</small></div></div>
+ <div class="bars"><div class="bar hp"><i id="hpbar"></i><span id="hptext"></span></div><div class="bar mp"><i id="mpbar"></i><span id="mptext"></span></div><div class="bar xp"><i id="xpbar"></i></div></div>
+ <div class="money">🪙 <span id="gold">0</span> &nbsp; 💎 <span id="gems">10</span></div>
+</div>
+<canvas id="game"></canvas>
+<div id="quest"><b>Quest</b><br><span id="questText">Defeat Forest Monsters 0/10</span></div>
+<div id="target"></div>
+<div id="log"></div>
+<div id="joy"><div id="stick"></div></div>
+<div id="skills">
+ <button data-skill="1"><b>1</b><span>⚔️</span><small>Slash</small></button>
+ <button data-skill="2"><b>2</b><span>💥</span><small>Power</small></button>
+ <button data-skill="3"><b>3</b><span>✨</span><small>Class</small></button>
+ <button id="potion"><b>Q</b><span>🧪</span><small>Potion</small></button>
+</div>
+<div id="menu"><button id="inventory">🎒 Inventory</button><button id="fullscreen">⛶ Fullscreen</button></div>
+<div id="inv" class="panel hidden"><button id="closeInv">✕</button><h2>Inventory</h2><div id="items"></div></div>
+<script src="game.js"></script>
+</body></html>

@@ -1,8 +1,9 @@
 {
-  "name": "Idle RPG: Legends Awaken",
-  "short_name": "Idle RPG",
+  "name": "Legends Awaken MMORPG",
+  "short_name": "Legends Awaken",
   "start_url": "./",
-  "display": "standalone",
-  "background_color": "#07101b",
-  "theme_color": "#07101b"
+  "display": "fullscreen",
+  "background_color": "#101813",
+  "theme_color": "#101813",
+  "icons": []
 }
