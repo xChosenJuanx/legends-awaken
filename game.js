@@ -18,20 +18,31 @@ try{$('#loadText').textContent='Loading actual Ancient World map…';stage=await
  if(isFinite(m)&&m>0){const sc=110/m;stage.scale.setScalar(sc);stage.position.set(-c.x*sc,-b.min.y*sc,-c.z*sc);fallbackGround.visible=false;stage.updateMatrixWorld(true);stage.traverse(o=>{if(o.isMesh&&o.geometry)terrainMeshes.push(o)});}
 }catch(e){console.warn('Stage fallback',e)}
 const player=new THREE.Group();scene.add(player);const visual=new THREE.Group();player.add(visual);
-let ch,mixer,clips=[],rootBone=null,rootPose=null,current='',attackLock=0;
+let ch,mixer,clips=[],rootBone=null,rootPose=null,current='',currentAction=null,attackLock=0;
+let animProbe={bone:null,p:null,t:0};
 try{$('#loadText').textContent='Loading Knight + original animations…';ch=await loader.loadCharacter('char/monster/d_kn/dkn.inx');visual.add(ch.object);mixer=ch.createMixer();clips=ch.clipNames||[];
  // auto-size to human scale
- ch.object.updateMatrixWorld(true);let b=new THREE.Box3().setFromObject(ch.object),h=b.getSize(new THREE.Vector3()).y;let sc=(isFinite(h)&&h>0)?1.85/h:.018;ch.object.scale.setScalar(sc);ch.object.updateMatrixWorld(true);
+ ch.object.updateMatrixWorld(true);let b=new THREE.Box3().setFromObject(ch.object),h=b.getSize(new THREE.Vector3()).y;let sc=(isFinite(h)&&h>0)?1.52/h:.0148;ch.object.scale.setScalar(sc);ch.object.updateMatrixWorld(true);
  // lock skeleton root translation/rotation to bind pose: removes PT root-motion tumble/burying
  // Do not overwrite animated skeleton bone transforms: PTLoader owns them.
  rootBone=null;rootPose=null;
  // One-time feet alignment only. Never re-snap the animated mesh every frame.
  groundVisual();
  const spawnY=terrainHeight(0,0,0);if(spawnY!==null){player.position.y=spawnY;terrainReady=true;$('#debug').textContent='Terrain spawn Y: '+spawnY.toFixed(2)}
+ animProbe.bone=ch.skeleton?.bones?.find(b=>b.parent?.isBone)||ch.skeleton?.bones?.[1]||ch.skeleton?.bones?.[0]||null;if(animProbe.bone)animProbe.p=animProbe.bone.quaternion.clone();
  play(find(['idle','stand'])||clips[0],0);$('#debug').textContent='Knight clips: '+clips.join(' • ')+' | terrain meshes: '+terrainMeshes.length;
 }catch(e){$('#loadText').textContent='Knight error: '+e.message;throw e}
 function find(a){for(const w of a){const n=clips.find(x=>x.toLowerCase().includes(w));if(n)return n}}
-function play(n,fade=.12){if(!n||n===current)return;for(const a of mixer._actions||[])if(a.isRunning())a.fadeOut(fade);const a=ch.play(n,mixer);if(a){a.reset().fadeIn(fade).play();current=n}}
+function play(n,fade=.12){
+ if(!n||n===current)return;
+ const clip=ch.clips?.[n];
+ if(!clip){console.warn('Missing clip',n);return}
+ const next=mixer.clipAction(clip,ch.object);
+ next.enabled=true;next.paused=false;next.setLoop(THREE.LoopRepeat,Infinity);next.clampWhenFinished=false;next.setEffectiveTimeScale(1);next.setEffectiveWeight(1);next.reset();
+ if(currentAction&&currentAction!==next){if(fade>0){currentAction.crossFadeTo(next,fade,false)}else{currentAction.stop();next.play()}}else next.play();
+ currentAction=next;current=n;
+ console.log('[Anim]',n,'duration',clip.duration,'tracks',clip.tracks.length,'root',mixer.getRoot()?.name||'(group)');
+}
 function groundVisual(){visual.position.y=0;ch.object.updateMatrixWorld(true);const b=new THREE.Box3().setFromObject(ch.object);if(isFinite(b.min.y))visual.position.y=-b.min.y+.02}
 const mobs=[],mobGeo=new THREE.CapsuleGeometry(.45,.9,5,8),mobMat=[0x577e35,0x6d4c38,0x59636c,0x754b35];
 for(let i=0;i<14;i++){const g=new THREE.Group(),body=new THREE.Mesh(mobGeo,new THREE.MeshLambertMaterial({color:mobMat[i%4]}));body.position.y=.9;g.add(body);
@@ -60,6 +71,9 @@ function loop(){
  if(moving){let l=Math.hypot(x,z),wx=(x*Math.cos(camYaw)+z*Math.sin(camYaw))/l,wz=(-x*Math.sin(camYaw)+z*Math.cos(camYaw))/l;player.position.x+=wx*4.2*dt;player.position.z+=wz*4.2*dt;player.rotation.y=Math.atan2(wx,wz);if(attackLock<=0)play(find(['run','walk'])||clips[0]);}
  else if(attackLock<=0)play(find(['idle','stand'])||clips[0]);
  mixer.update(dt);
+ // Force world matrices after mixer evaluation; no bone transforms are overwritten.
+ ch.object.updateMatrixWorld(true);
+ animProbe.t+=dt;if(animProbe.t>.35){animProbe.t=0;const clip=ch.clips?.[current],a=currentAction;let motion='n/a';if(animProbe.bone&&animProbe.p){const d=1-Math.abs(animProbe.p.dot(animProbe.bone.quaternion));motion=d>1e-7?'YES':'NO';animProbe.p.copy(animProbe.bone.quaternion)}$('#debug').textContent=`Anim ${current} | time ${a?a.time.toFixed(2):'-'} | running ${a?.isRunning?.()?'YES':'NO'} | tracks ${clip?.tracks?.length??0} | bone motion ${motion} | scale 82%`;}
  // Critical stabilization after every animation update.
  // PTLoader animation controls the skeleton; do not reset pelvis/root each frame.
  if(terrainMeshes.length && elapsed-terrainLast>.09){terrainLast=elapsed;const y=terrainHeight(player.position.x,player.position.z,player.position.y);if(y!==null){terrainReady=true;player.position.y+=(y-player.position.y)*Math.min(1,dt*18);}}
