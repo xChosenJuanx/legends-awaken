@@ -3,7 +3,7 @@ const [clips,body,bind]=await Promise.all(['clips.json','body.json','bind.json']
 const ids=Object.keys(clips.segments), c=document.querySelector('#c'),ctx=c.getContext('2d'),stat=document.querySelector('#stat');
 const idleSel=document.querySelector('#idleSeg'),runSel=document.querySelector('#runSeg'),atkSel=document.querySelector('#atkSeg');
 for(const s of [idleSel,runSel,atkSel]) for(const id of ids){const o=document.createElement('option');o.value=id;o.textContent=id;s.append(o)}
-idleSel.value=ids.includes('1')?'1':ids[0];runSel.value=ids.includes('4')?'4':ids[Math.min(1,ids.length-1)];atkSel.value=ids.includes('10')?'10':ids[Math.min(2,ids.length-1)];
+idleSel.value=ids.includes('1')?'1':ids[0];runSel.value=ids.includes('5')?'5':ids[Math.min(1,ids.length-1)];atkSel.value=ids.includes('8')?'8':ids[Math.min(2,ids.length-1)];
 const runtimes={}; function RT(id){return runtimes[id]??=(s=>new PTRuntime({bones:s.bones.map(b=>({...b,frames:[b.frame]}))}))(clips.segments[id])}
 let mode='idle',frame=clips.segments[idleSel.value].start,last=performance.now(),yaw=-.55,pitch=.08,drag=false,lx=0,ly=0,px=0,pz=0,attack=false;
 const keys=new Set(); addEventListener('keydown',e=>{keys.add(e.code);if(e.code==='Space'){e.preventDefault();startAttack()}});addEventListener('keyup',e=>keys.delete(e.code));
