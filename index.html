@@ -1,19 +1,3 @@
-<!doctype html><html><head><meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
-<title>Legends Awaken — Build 3</title><link rel="manifest" href="manifest.json"><link rel="stylesheet" href="style.css">
-<script type="importmap">{"imports":{"three":"https://esm.sh/three@0.180.0","@fakl-code/pt-loader":"https://esm.sh/@fakl-code/pt-loader@0.1.5?external=three"}}</script></head>
-<body><canvas id="game"></canvas>
-<div id="loading"><div><h1>LEGENDS AWAKEN</h1><div class="spinner"></div><p id="loadText">Preparing Ancient World…</p></div></div>
-<div id="top"><div><b>JUAN</b><small> KNIGHT • LV. <span id="lv">1</span></small></div><div class="bar hp"><i id="hp"></i><span id="hpt">100 / 100</span></div><div class="bar mp"><i id="mp"></i><span>100 / 100</span></div><div class="bar xp"><i id="xp"></i></div></div>
-<div id="quest"><b>⚔ FIELD MISSION</b><span id="questText">Defeat monsters 0 / 10</span><small>Reward: 500 Gold + EXP</small></div>
-<div id="target" class="hide"><b id="targetName">Monster</b><div class="bar hp"><i id="targetHp"></i></div></div>
-<div id="notice"></div><button id="fullscreen">⛶</button>
-<div id="joy"><div id="stick"></div></div>
-<div id="skills">
-<button data-skill="0"><img src="ui/skills/mn23-brandish.png"><kbd>SPACE</kbd></button>
-<button data-skill="1"><img src="ui/skills/mn26-piercing.png"><kbd>1</kbd></button>
-<button data-skill="2"><img src="ui/skills/mn50-g-cross.png"><kbd>2</kbd></button>
-<button data-skill="3"><img src="ui/skills/mn83-c-moon.png"><kbd>3</kbd></button>
-<button id="potion">🧪<kbd>Q</kbd></button></div>
-<div id="debug">Loading animations…</div>
-<script type="module" src="game.js"></script></body></html>
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no,viewport-fit=cover"><meta name="theme-color" content="#101216"><title>Legends Awaken - Knight Test</title><link rel="manifest" href="manifest.webmanifest"><style>
+html,body{margin:0;background:#101216;color:#eee;font:14px system-ui;overflow:hidden;touch-action:none}canvas{width:100vw;height:100vh;display:block}.hud{position:fixed;z-index:5}.top{left:10px;top:10px;background:#000a;padding:8px 10px;border-radius:10px}.joy{left:24px;bottom:24px;width:126px;height:126px;border:2px solid #ffffff55;border-radius:50%;background:#ffffff10}.knob{position:absolute;width:54px;height:54px;border-radius:50%;background:#ffffff66;left:36px;top:36px}.atk{right:28px;bottom:34px;width:86px;height:86px;border-radius:50%;border:2px solid #fff8;background:#8b1e2dcc;color:white;font-weight:800}.skill{right:122px;bottom:116px;width:52px;height:52px;border-radius:50%;border:1px solid #fff7;background:#27324dcc;color:white}.hint{position:fixed;left:50%;transform:translateX(-50%);bottom:8px;color:#ffffff99;font-size:12px}.top select{max-width:150px}
+</style></head><body><div class="hud top"><b>Legends Awaken — Knight Test</b><br><span id="stat">Loading…</span><br><label>Idle <select id="idleSeg"></select></label> <label>Run <select id="runSeg"></select></label> <label>Atk <select id="atkSeg"></select></label></div><canvas id="c"></canvas><div id="joy" class="hud joy"><div id="knob" class="knob"></div></div><button id="skill" class="hud skill">S1</button><button id="atk" class="hud atk">ATK</button><div class="hint">PC: WASD / arrows • Space attack • drag screen to rotate • Mobile: joystick + ATK</div><script type="module" src="game.js"></script></body></html>
