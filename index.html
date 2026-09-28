@@ -1,12 +1,7 @@
-<!doctype html><html><head><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1"><title>PT tmbA01 Mesh Test</title>
-<style>html,body{margin:0;height:100%;background:#0b0e13;color:white;font-family:system-ui}canvas{width:100%;height:calc(100% - 55px);display:block}header{height:55px;padding:8px 14px;box-sizing:border-box;background:#171c25}</style></head>
-<body><header><b>Priston Tale tmbA01 — Actual Mesh Test</b><br><small>Drag to rotate • wheel to zoom • original SMD triangle data</small></header><canvas id=c></canvas>
-<script>
-const c=document.querySelector('#c'),x=c.getContext('2d');let D,ang=.2,tilt=.1,zoom=90,drag=false,lx=0,ly=0;
-function rs(){c.width=c.clientWidth*devicePixelRatio;c.height=c.clientHeight*devicePixelRatio}onresize=rs;rs();
-c.onpointerdown=e=>{drag=true;lx=e.clientX;ly=e.clientY;c.setPointerCapture(e.pointerId)};c.onpointerup=()=>drag=false;c.onpointermove=e=>{if(drag){ang+=(e.clientX-lx)*.01;tilt+=(e.clientY-ly)*.01;lx=e.clientX;ly=e.clientY}};c.onwheel=e=>{zoom*=e.deltaY>0?.9:1.1};
-function P(v){let [a,b,d]=v;if(Math.abs(a)>1e5)return null;let ca=Math.cos(ang),sa=Math.sin(ang),ct=Math.cos(tilt),st=Math.sin(tilt);let X=a*ca-d*sa,Z=a*sa+d*ca,Y=b*ct-Z*st;Z=b*st+Z*ct;return[c.clientWidth/2+X*zoom,c.clientHeight*.58-Y*zoom,Z]}
-function draw(){rs();x.save();x.scale(devicePixelRatio,devicePixelRatio);x.clearRect(0,0,c.clientWidth,c.clientHeight);x.strokeStyle='#d7dde8';x.lineWidth=.7;
-if(D)for(const p of D.parts)for(const f of p.faces){let a=P(p.vertices[f[0]]),b=P(p.vertices[f[1]]),d=P(p.vertices[f[2]]);if(!a||!b||!d)continue;x.beginPath();x.moveTo(a[0],a[1]);x.lineTo(b[0],b[1]);x.lineTo(d[0],d[1]);x.closePath();x.stroke()}
-x.restore();requestAnimationFrame(draw)}fetch('mesh.json').then(r=>r.json()).then(j=>D=j);draw();
+<!doctype html><html><head><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1"><title>PT tmbA01 Mesh Test V2</title><style>html,body{margin:0;height:100%;background:#090c11;color:#eee;font-family:system-ui}header{height:58px;padding:8px 14px;background:#171c25;box-sizing:border-box}canvas{display:block;width:100%;height:calc(100% - 58px)}</style></head><body><header><b>Priston Tale tmbA01 — Exact Legacy Mesh V2</b><br><small>Exact 9/9 byte-aligned parser • drag rotate • wheel zoom</small></header><canvas id=c></canvas><script>
+const c=document.querySelector('#c'),g=c.getContext('2d');let D,A=.3,T=.05,Z=55,drag=0,lx,ly;
+function size(){c.width=c.clientWidth*devicePixelRatio;c.height=c.clientHeight*devicePixelRatio}onresize=size;size();
+c.onpointerdown=e=>{drag=1;lx=e.clientX;ly=e.clientY;c.setPointerCapture(e.pointerId)};c.onpointerup=()=>drag=0;c.onpointermove=e=>{if(drag){A+=(e.clientX-lx)*.01;T+=(e.clientY-ly)*.01;lx=e.clientX;ly=e.clientY}};c.onwheel=e=>Z*=e.deltaY>0?.9:1.1;
+function P(v){let [x,y,z]=v,ca=Math.cos(A),sa=Math.sin(A),ct=Math.cos(T),st=Math.sin(T);let X=x*ca-z*sa,q=x*sa+z*ca,Y=y*ct-q*st;return[c.clientWidth/2+X*Z,c.clientHeight*.65-Y*Z]}
+function loop(){size();g.save();g.scale(devicePixelRatio,devicePixelRatio);g.clearRect(0,0,c.clientWidth,c.clientHeight);g.strokeStyle='#e4e9f2';g.lineWidth=.65;if(D)for(const p of D.parts)for(const f of p.faces){let a=P(p.vertices[f[0]]),b=P(p.vertices[f[1]]),q=P(p.vertices[f[2]]);g.beginPath();g.moveTo(...a);g.lineTo(...b);g.lineTo(...q);g.closePath();g.stroke()}g.restore();requestAnimationFrame(loop)}fetch('mesh.json').then(r=>r.json()).then(j=>D=j);loop();
 </script></body></html>

@@ -1,1 +1,1 @@
-Run with any local/static HTTP server and open index.html. This is the first actual tmbA01 SMD triangle/wireframe validation build.
+V2 uses an exact byte-length validated legacy tmbA01 object layout for all 9 mesh parts.
