@@ -1,0 +1,1 @@
+Run with any local/static HTTP server and open index.html. This is the first actual tmbA01 SMD triangle/wireframe validation build.
