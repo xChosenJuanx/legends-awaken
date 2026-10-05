@@ -1,6 +1,6 @@
 # Legends Awaken
 
-Legends Awaken is an independently developed MMORPG project focused on learning, prototyping, and documenting practical game-development systems.
+Legends Awaken is an independently developed public MMORPG development project focused on learning, prototyping, and documenting practical game-development systems, with the goal of releasing verified original and redistributable components under an open-source license.
 
 ## Project status
 
@@ -11,7 +11,7 @@ Legends Awaken is an independently developed MMORPG project focused on learning,
 - Build and document reusable MMORPG gameplay concepts.
 - Experiment with character movement, animation, combat, UI, and related systems.
 - Improve maintainability through testing, debugging, and clear documentation.
-- Keep the project's original code and documentation accessible for learning and collaboration.
+- Prepare the project's verified original code and documentation for open-source release, learning, and collaboration.
 
 ## Development
 
@@ -41,7 +41,7 @@ Please avoid submitting third-party proprietary game code, assets, trademarks, o
 
 ## Open-source scope
 
-The intention of this repository is to share original project code and documentation that can legally be redistributed. Third-party proprietary game assets or source code are not intended to be part of the open-source project.
+The intention of this repository is to identify and share original project code and documentation that can legally be redistributed under an explicit open-source license. Third-party proprietary game assets or source code are not intended to be part of the open-source project.
 
 ## Maintainer
 
